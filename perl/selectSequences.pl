@@ -1,0 +1,31 @@
+#!/usr/bin/perl
+
+# Script will extract gene based on a identifier in the header, can be gi, organism name or whatever
+# By Anders Lind, edited by Joran Martijn
+# Opposite of removeSequences.pl
+
+use strict;
+use warnings;
+use Bio::SeqIO;
+
+die "Usage: selectSequences.pl [fasta-in] [id] > [fasta-out]\n" unless @ARGV == 2;
+
+my ($fa, $identifier) = @ARGV;
+
+my $in  = Bio::SeqIO->new(-format => 'fasta',
+			  -file   => $fa);
+my $out = Bio::SeqIO->new(-format => 'fasta',
+			  -fh     => \*STDOUT);
+
+my $count = 0;
+while (my $seq = $in->next_seq) {
+    my $id = $seq->id;
+    $id .= $seq->desc;
+    if (grep(/$identifier/, $id) ){
+	$count++;
+	$out->write_seq($seq);
+    }
+}
+
+print STDERR "Could not find any headers containing $identifier\n" if $count == 0;
+print STDERR "Found $count header(s) containing $identifier\n"     if $count > 0;
